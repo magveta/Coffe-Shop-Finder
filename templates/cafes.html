@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Find a cafe around you!</title>
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            margin: 20px;
+
+            background-color: #f4f4f4;
+
+        }
+
+        table {
+
+            border-collapse: collapse;
+
+            width: 100%;
+
+            margin-top: 20px;
+
+        }
+
+        th, td {
+
+            text-align: left;
+
+            padding: 8px;
+
+            border-bottom: 1px solid #ddd;
+
+        }
+
+        th {
+
+            background-color: #4CAF50;
+
+            color: white;
+
+        }
+
+        tr:hover {background-color: #f5f5f5;}
+
+        img {
+
+            width: 100px; /* Adjust based on your preference */
+
+            height: auto;
+
+            border-radius: 5px; /* Adds rounded corners to images */
+
+        }
+
+        /* Responsive table */
+
+        @media screen and (max-width: 600px) {
+
+            table, thead, tbody, th, td, tr {
+
+                display: block;
+
+            }
+
+            th, td {
+
+                text-align: right;
+
+            }
+
+            td {
+
+                text-align: left;
+
+                position: relative;
+
+                padding-left: 50%;
+
+            }
+
+            td:before {
+
+                /* Now like a table header */
+
+                position: absolute;
+
+                left: 10px;
+
+                width: 45%;
+
+                padding-right: 10px;
+
+                white-space: nowrap;
+
+                content: attr(data-label);
+
+                font-weight: bold;
+
+            }
+
+        }
+
+/* Add styles for the navigation menu */
+
+        .nav-links {
+
+            list-style-type: none;
+
+            padding: 0;
+
+        }
+
+        .nav-links li {
+
+            display: inline;
+
+            margin-right: 20px;
+
+        }
+
+        .nav-links a {
+
+            text-decoration: none;
+
+            color: #4CAF50;
+
+        }
+
+        .nav-links a:hover {
+
+            text-decoration: underline;
+
+        }
+
+        /* Styles to hide/show cafes */
+
+        #cafesTable {
+
+            display: none;
+
+        }
+
+/* Form styling */
+
+        #addCafeForm {
+
+            display: none;
+
+            background-color: #f4f4f4;
+
+            padding: 20px;
+
+            margin-top: 20px;
+
+        }
+
+        #addCafeForm label {
+
+            display: block;
+
+            margin: 10px 0;
+
+        }
+
+        #addCafeForm input[type=text],
+
+        #addCafeForm input[type=url] {
+
+            width: 100%;
+
+            padding: 8px;
+
+            margin: 5px 0 20px 0;
+
+            display: inline-block;
+
+            border: 1px solid #ccc;
+
+            border-radius: 4px;
+
+            box-sizing: border-box;
+
+        }
+
+        #addCafeForm input[type=checkbox] {
+
+            margin-top: 15px;
+
+        }
+
+        #addCafeForm button {
+
+            width: 100%;
+
+            background-color: #4CAF50;
+
+            color: white;
+
+            padding: 14px 20px;
+
+            margin: 8px 0;
+
+            border: none;
+
+            border-radius: 4px;
+
+            cursor: pointer;
+
+        }
+
+        #addCafeForm button:hover {
+
+            background-color: #45a049;
+
+        }
+
+    </style>
+
+</head>
+
+<ul class="nav-links">
+
+<li><a href="#" id="displayCafesLink">Display all cafes</a></li>
+
+<li><a href="#" id="addCafeLink">Add new cafe</a></li>
+
+<li><a href="#" id="deleteCafeLink">Delete cafe</a></li>
+
+</ul>
+
+
+<body>
+
+    <h2>Search for available cafes around you?</h2>
+
+<img src="{{ url_for('static', filename='Banner.webp') }}" alt="Welcome to the Coffe Shop website." style="width:60%;">
+
+<div id="cafesTable" style="display: none;">
+
+<table>
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+
+                <th>Location</th>
+
+                <th>Has sockets</th>
+
+                <th>Has toilet</th>
+
+                <th>Has Wifi</th>
+
+                <th>Can take calls</th>
+
+                <th>Seats</th>
+
+                <th>Coffee price</th>
+
+                <th>Map</th>
+
+                <th>Image</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for cafe in cafes %}
+
+                <tr>
+
+                    <td data-label="Name">{{ cafe.name }}</td>
+
+                    <td data-label="Location">{{ cafe.location }}</td>
+
+                    <td data-label="Has Sockets">{{ cafe.has_sockets }}</td>
+
+                    <td data-label="Has Toilet">{{ cafe.has_toilet }}</td>
+
+                    <td data-label="Has Wifi">{{ cafe.has_wifi }}</td>
+
+                    <td data-label="Can Take Calls">{{ cafe.can_take_calls }}</td>
+
+                    <td data-label="Seats">{{ cafe.seats }}</td>
+
+                    <td data-label="Coffee Price">{{ cafe.coffee_price }}</td>
+
+                    <td data-label="Map"><a href="{{ cafe.map_url }}" target="_blank">View Map</a></td>
+
+                    <td data-label="Image"><img src="{{ cafe.img_url }}" alt="Cafe Image"></td>
+
+        <!-- Delete Link -->
+
+<td data-label="Delete">
+
+<a href="#" class="delete-link" data-id="{{ cafe.id }}" onclick="deleteCafe(this);" style="display: none;">Delete</a>
+
+</td>
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- Add New Cafe Form -->
+
+    <div id="addCafeForm">
+
+        <h2>Add new cafe</h2>
+
+        <form action="/add" method="post">
+
+            <label for="name">Name:</label>
+
+            <input type="text" id="name" name="name" required>
+
+
+<label for="location">Location:</label>
+
+<input type="text" id="location" name="loc" required>
+
+
+            <label for="map_url">Map URL:</label>
+
+            <input type="url" id="map_url" name="map_url">
+
+
+            <label for="img_url">Image URL:</label>
+
+            <input type="url" id="img_url" name="img_url">
+
+
+            <label><input type="checkbox" id="has_sockets" name="has_sockets"> Has sockets</label>
+
+            <label><input type="checkbox" id="has_toilet" name="has_toilet"> Has toilet</label>
+
+            <label><input type="checkbox" id="has_wifi" name="has_wifi"> Has Wifi</label>
+
+            <label><input type="checkbox" id="can_take_calls" name="can_take_calls"> Can take calls</label>
+
+
+            <label for="seats">Seats:</label>
+
+            <input type="text" id="seats" name="seats">
+
+
+            <label for="coffee_price">Coffee price:</label>
+
+            <input type="text" id="coffee_price" name="coffee_price">
+
+
+            <button type="submit">Add cafe</button>
+
+        </form>
+
+    </div>
+
+
+    <!-- JavaScript to toggle the display -->
+
+<script>
+
+    // Function to initially hide certain sections
+
+    function initialHideSections() {
+
+        document.getElementById('cafesTable').style.display = 'none'; // Hide cafes table
+
+        document.getElementById('addCafeForm').style.display = 'none'; // Hide add cafe form
+
+        // Initially hide delete links
+
+        document.querySelectorAll('.delete-link').forEach(link => {
+
+            link.style.display = 'none';
+
+        });
+
+    }
+
+
+    // Toggle visibility of specified element
+
+    function toggleVisibility(elementId) {
+
+        let element = document.getElementById(elementId);
+
+        let isDisplayed = element.style.display === 'block';
+
+        initialHideSections(); // Hide all sections and reset delete links
+
+        element.style.display = isDisplayed ? 'none' : 'block'; // Show or hide the targeted section
+
+    }
+
+
+    // Toggle delete links visibility without affecting other UI elements
+
+    function toggleDeleteLinks() {
+
+        let deleteLinks = document.querySelectorAll('.delete-link');
+
+        let areLinksVisible = deleteLinks[0].style.display === 'inline';
+
+        deleteLinks.forEach(link => {
+
+            link.style.display = areLinksVisible ? 'none' : 'inline'; // Toggle visibility
+
+        });
+
+    }
+
+
+    // Function to handle cafe deletion
+
+    function deleteCafe(linkElement) {
+
+        const cafeId = linkElement.getAttribute('data-id');
+
+        if (!cafeId) return; // Exit if cafe ID is not found
+
+
+        // Confirm deletion
+
+        if (!confirm('Are you sure you want to delete this cafe?')) return;
+
+
+        // Setup the request options for a POST request
+
+        const requestOptions = {
+
+            method: 'POST',
+
+            headers: {
+
+                'Content-Type': 'application/json',
+
+                // Include CSRF token if needed
+
+            },
+
+            // Body may be needed if you're sending additional data
+
+            // body: JSON.stringify({ cafeId: cafeId }),
+
+        };
+
+
+        // Send the request to the server
+
+        fetch(`/delete-cafe/${cafeId}`, requestOptions)
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                console.log('Success:', data);
+
+                // Optionally refresh the list or remove the cafe row from the DOM
+
+                location.reload(); // Simplest way to reflect the change
+
+            })
+
+            .catch((error) => {
+
+                console.error('Error:', error);
+
+            });
+
+    }
+
+
+    window.onload = function() {
+
+        initialHideSections(); // Hide sections on page load
+
+
+        document.getElementById('displayCafesLink').addEventListener('click', function(event) {
+
+            event.preventDefault();
+
+            toggleVisibility('cafesTable'); // Show cafes table
+
+        });
+
+
+        document.getElementById('addCafeLink').addEventListener('click', function(event) {
+
+            event.preventDefault();
+
+            toggleVisibility('addCafeForm'); // Show add cafe form
+
+        });
+
+
+        document.getElementById('deleteCafeLink').addEventListener('click', function(event) {
+
+            event.preventDefault();
+
+            toggleDeleteLinks(); // Toggle visibility of delete links
+
+        });
+
+    };
+
+</script>
+
+
+
+</body>
+
+</html>
+
+
